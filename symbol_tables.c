@@ -253,6 +253,7 @@ void init_all(){
 ** FUNCTIONS
 ***********************************/
 void add_func ( char *type, char *name, param_list_t *params ) {
+
 	if ( func_ll == NULL ) {
 		func_t *func_pointer;
 		//adding the new function

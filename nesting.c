@@ -22,8 +22,8 @@ void inc_nesting()
 
 void dec_nesting()
 {
-	//pop_vars( nesting );
-	//pop_types( nesting );
+	pop_vars( nesting );
+	pop_types( nesting );
 	nesting--;
 }
 

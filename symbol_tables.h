@@ -85,6 +85,8 @@ func_t* find_last_func( );
 
 int get_num_params( func_t *func );
 
+void check_func_call ( char *name, int param_count );
+
 param_list_t *newParamNode(char* type, char* name, int dim, int nest_level);
 
 void print_funcs();

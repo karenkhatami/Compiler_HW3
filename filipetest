@@ -48,6 +48,8 @@ int main()
 		n = n - 1;
 	}
 
+	MatrixMultiplication ( a, b);
+
 	/* Using all the logical and arithmatic operator */
 
 	if ( someReal12345 <= 120.05) 

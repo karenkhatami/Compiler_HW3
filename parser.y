@@ -65,6 +65,8 @@
 %type <ival> dim_decl
 %type <ival> dim_fn
 %type <ival> dimfn1
+%type <ival> relop_expr_list
+%type <ival> nonempty_relop_expr_list
 
 %%
 
@@ -205,7 +207,7 @@ stmt		: MK_LBRACE{inc_nesting();} block MK_RBRACE{dec_nesting();}
 		| RETURN relop_expr MK_SEMICOLON
 		;
 
-function_call    : ID MK_LPAREN relop_expr_list MK_RPAREN
+function_call    : ID MK_LPAREN relop_expr_list MK_RPAREN { check_func_call( $1, $3 ); }
                  ;
 
 assign_expr_list : nonempty_assign_expr_list
@@ -240,12 +242,12 @@ rel_op		: OP_LT
 		| OP_NE
 		;
 
-relop_expr_list	: nonempty_relop_expr_list 
+relop_expr_list	: nonempty_relop_expr_list { $$=$1; }
 		| 
 		;
 
-nonempty_relop_expr_list	: nonempty_relop_expr_list MK_COMMA relop_expr
-		| relop_expr
+nonempty_relop_expr_list	: nonempty_relop_expr_list MK_COMMA relop_expr { $$ = $1 + 1; }
+		| relop_expr { $$ = 1; }
 		;
 
 expr		: expr add_op term
