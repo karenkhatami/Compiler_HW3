@@ -27,6 +27,7 @@ typedef struct type {
 	struct type *next;
 	char real_type[256];
 	int param_count; //for number of function params or array dimmension
+	int dim_count_struct;
 } type_t;
 
 typedef struct param_list {

@@ -200,7 +200,7 @@ init_id_list	: init_id {$$=$1;}
 
 init_id		: ID { $$=var_decl($1, 0); }
 		| ID dim_decl { $$=var_decl($1, $2); }
-		| ID OP_ASSIGN relop_expr { $$=var_decl($1, 0); }
+		| ID OP_ASSIGN relop_expr { $$=var_decl($1, 0); check_assign_types($1, $3); }
 		;
 
 stmt_list	: stmt_list stmt
@@ -217,7 +217,7 @@ stmt		: MK_LBRACE{inc_nesting();} block MK_RBRACE{dec_nesting();}
 		| IF MK_LPAREN relop_expr MK_RPAREN stmt 
 		/* | read and write library calls -- note that read/write are not keywords */ 
 		| function_call
-		| var_ref OP_ASSIGN relop_expr MK_SEMICOLON { check_array_dimmension( $1 ); }
+		| var_ref OP_ASSIGN relop_expr MK_SEMICOLON { check_array_dimmension( $1 ); check_assign_types($1, $3);}
 		| relop_expr_list MK_SEMICOLON
 		| MK_SEMICOLON
 		| RETURN MK_SEMICOLON { type_t temp; strcpy(temp.real_type, "void"); check_func_return (temp); }
@@ -300,14 +300,14 @@ factor		: MK_LPAREN relop_expr MK_RPAREN { $$ = $2; }
 		| OP_MINUS ID MK_LPAREN relop_expr_list MK_RPAREN { $$ = check_func_call( $2, $4.param_count ); }
 		| var_ref { $$=$1; check_array_dimmension($1); }
 		/* | - var-reference */ 
-		| OP_NOT var_ref { $$=$2; check_array_dimmension($2); }
+		| OP_NOT var_ref { $$=$2; check_array_dimmension($2);}
                 /* OP_MINUS condition added as C could have a condition like: "if(-a)".	*/	
-		| OP_MINUS var_ref { $$=$2; check_array_dimmension($2); }
+		| OP_MINUS var_ref { $$=$2; check_array_dimmension($2);}
 		;
 
-var_ref		: ID {process_id($1); $$=check_id_type($1); $$.param_count=0;}
-		| var_ref var_ref_dim { $$=$1; $$.param_count=$2; }
-		| var_ref struct_tail { $$=$1; $$.param_count=0; struct_ref($1.name, $2); }
+var_ref		: ID {process_id($1); $$=check_id_type($1); $$.param_count=0; $$.dim_count_struct=-1;}
+		| var_ref var_ref_dim { $1.param_count=$2; $$=$1; }
+		| var_ref struct_tail { check_array_dimmension($1); $$=struct_ref($1.name, $2); $$.dim_count_struct = array_dimmension_struct($$, $1.name); $$.param_count=0; }
 		;
 
 var_ref_dim	: dim { $$=1; }
