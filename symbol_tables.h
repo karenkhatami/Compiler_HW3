@@ -26,6 +26,7 @@ typedef struct type {
 	int nest_level;
 	struct type *next;
 	char real_type[256];
+	int param_count; //for number of function params or array dimmension
 } type_t;
 
 typedef struct param_list {
@@ -88,6 +89,18 @@ func_t* find_func( char *name );
 func_t* find_last_func( );
 
 int get_num_params( func_t *func );
+
+type_t check_func_call ( char *name, int param_count );
+
+type_t check_id_type( char *name );
+
+void check_op_types ( type_t a, type_t b);
+
+void check_func_return ( type_t ret_type );
+
+void check_array_dimmension ( type_t id );
+
+void check_dim_type ( type_t dim_type );
 
 param_list_t *newParamNode(char* type, char* name, int dim, int nest_level);
 

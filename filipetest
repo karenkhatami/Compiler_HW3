@@ -4,14 +4,14 @@
 int MatrixMultiplication(int V1[][10], int V2[][10])
 {
  int result[10][10];          /*multi-dimensional array declaration */
- float result;
+ /*float result;*/
 
 /* for is used like this */
-   for (i = 0; i < 10; i = i + 1) 
+   for (i1 = 0; i2 < 10; i3 = i4 + 1) 
    {
       for(j = 0; j < 10; j = j + 1) 
       {
-            result[i][j] = 0;
+            result[i] = 0;
             for (k = 0; k < 10; k = k + 1) 
             {
 				result[i][j] = result[i][j] + V1[i][k]*V2[k][j];
@@ -19,7 +19,7 @@ int MatrixMultiplication(int V1[][10], int V2[][10])
       }
    }
 
-  return 1;
+  return ;
 }
 
 int main()
@@ -35,6 +35,9 @@ int main()
 	/* int declared here */
 	int a,b,n;
 
+	int karen[3][4][5];
+	karen[3][i] = 2 + karen;
+
 	/* Read, Fread, and Write are library functions*/
 	write("Input some real number:");
 	n = read();
@@ -47,6 +50,8 @@ int main()
 		a = a/n;
 		n = n - 1;
 	}
+
+	MatrixMultiplication ( a, b,c);
 
 	/* Using all the logical and arithmatic operator */
 
