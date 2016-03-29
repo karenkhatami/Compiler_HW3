@@ -8,6 +8,8 @@
 #include "symbol_tables.h"
 #include "semantic_routines.h"
 
+type_t int_type;
+
 %}
 
 %union {char* str;
@@ -15,6 +17,7 @@
   double dval;
   id_list_t *ID_List;
   param_list_t *Param_List;
+  type_t EXPR_type;
 }
 
 %token <str> ID
@@ -65,15 +68,23 @@
 %type <ival> dim_decl
 %type <ival> dim_fn
 %type <ival> dimfn1
-%type <ival> relop_expr_list
-%type <ival> nonempty_relop_expr_list
-
+%type <EXPR_type> relop_expr_list
+%type <EXPR_type> nonempty_relop_expr_list
+%type <EXPR_type> relop_expr
+%type <EXPR_type> relop_term
+%type <EXPR_type> relop_factor
+%type <EXPR_type> expr
+%type <EXPR_type> term
+%type <EXPR_type> factor
+%type <EXPR_type> function_call
+%type <EXPR_type> var_ref
+%type <ival> var_ref_dim
 %%
 
 /* ==== Grammar Section ==== */
 
 /* Productions */               /* Semantic actions */
-program		: { init_all(); } global_decl_list { print_vars(); print_types(); print_funcs();}
+program		: { init_all(); strcpy(int_type.real_type, "int"); } global_decl_list { print_vars(); print_types(); print_funcs();}
 		;
 
 global_decl_list: global_decl_list global_decl
@@ -136,7 +147,7 @@ type_decl 	: TYPEDEF type id_list MK_SEMICOLON { type_def($2, $3, get_nesting())
 
 var_decl	: type init_id_list MK_SEMICOLON { add_var_list($1, $2, get_nesting()); }
 		| struct_type id_list MK_SEMICOLON
-		| ID id_list MK_SEMICOLON 
+		| ID id_list MK_SEMICOLON { add_var_list($1, $2, get_nesting()); }
 		;
 
 /* Suppported types. */
@@ -200,14 +211,14 @@ stmt		: MK_LBRACE{inc_nesting();} block MK_RBRACE{dec_nesting();}
 		| IF MK_LPAREN relop_expr MK_RPAREN stmt 
 		/* | read and write library calls -- note that read/write are not keywords */ 
 		| function_call
-		| var_ref OP_ASSIGN relop_expr MK_SEMICOLON 
+		| var_ref OP_ASSIGN relop_expr MK_SEMICOLON { check_array_dimmension( $1 ); }
 		| relop_expr_list MK_SEMICOLON
 		| MK_SEMICOLON
-		| RETURN MK_SEMICOLON
-		| RETURN relop_expr MK_SEMICOLON
+		| RETURN MK_SEMICOLON { type_t temp; strcpy(temp.real_type, "void"); check_func_return (temp); }
+		| RETURN relop_expr MK_SEMICOLON { check_func_return($2); }
 		;
 
-function_call    : ID MK_LPAREN relop_expr_list MK_RPAREN { check_func_call( $1, $3 ); }
+function_call    : ID MK_LPAREN relop_expr_list MK_RPAREN { $$ = check_func_call( $1, $3.param_count ); }
                  ;
 
 assign_expr_list : nonempty_assign_expr_list
@@ -221,16 +232,16 @@ assign_expr     : ID {process_id($1);} OP_ASSIGN relop_expr
                 | relop_expr
 
 
-relop_expr	: relop_term
-		| relop_expr OP_OR relop_term
+relop_expr	: relop_term { $$=$1; }
+		| relop_expr OP_OR relop_term  { $$=$1 ; check_op_types ( $1, $3 ); }
 		;
 
-relop_term	: relop_factor
-		| relop_term OP_AND relop_factor
+relop_term	: relop_factor { $$=$1; }
+		| relop_term OP_AND relop_factor { $$=$1 ; check_op_types ( $1, $3 ); }
 		;
 
-relop_factor	: expr
-		| expr rel_op expr
+relop_factor	: expr { $$=$1; }
+		| expr rel_op expr { $$=$1 ; check_op_types ( $1, $3 ); }
 		;
 
 /* Relational operators added.*/
@@ -242,59 +253,62 @@ rel_op		: OP_LT
 		| OP_NE
 		;
 
-relop_expr_list	: nonempty_relop_expr_list { $$=$1; }
+relop_expr_list	: nonempty_relop_expr_list { $$.param_count=$1.param_count; }
 		| 
 		;
 
-nonempty_relop_expr_list	: nonempty_relop_expr_list MK_COMMA relop_expr { $$ = $1 + 1; }
-		| relop_expr { $$ = 1; }
+nonempty_relop_expr_list	: nonempty_relop_expr_list MK_COMMA relop_expr { $$.param_count = $1.param_count + 1; }
+		| relop_expr { $$.param_count = 1; }
 		;
 
-expr		: expr add_op term
-		| term
+expr		: expr add_op term { $$=$1 ; check_op_types ( $1, $3 ); }
+		| term { $$=$1; }
 		;
 
 add_op		: OP_PLUS
 		| OP_MINUS
 		;
 
-term		: term mul_op factor
-		| factor
+term		: term mul_op factor { $$=$1 ; check_op_types ( $1, $3 ); }
+		| factor  { $$=$1; }
 		;
 
 mul_op		: OP_TIMES
 		| OP_DIVIDE
 		;
 
-factor		: MK_LPAREN relop_expr MK_RPAREN
+factor		: MK_LPAREN relop_expr MK_RPAREN { $$ = $2; }
 		/* | -(<relop_expr>) */ 
-		| OP_NOT MK_LPAREN relop_expr MK_RPAREN
+		| OP_NOT MK_LPAREN relop_expr MK_RPAREN { $$ = $3; }
                 /* OP_MINUS condition added as C could have a condition like: "if(-(i < 10))".	*/		
-		| OP_MINUS MK_LPAREN relop_expr MK_RPAREN
-		| CONST	
+		| OP_MINUS MK_LPAREN relop_expr MK_RPAREN { $$ = $3; }
+		| CONST	{ $$ = int_type; }
 		/* | - constant, here - is an Unary operator */ 
-		| OP_NOT CONST
+		| OP_NOT CONST 	{ $$ = int_type; }
                 /*OP_MINUS condition added as C could have a condition like: "if(-10)".	*/		
-		| OP_MINUS CONST
-		| function_call
+		| OP_MINUS CONST 	{ $$ = int_type; }
+		| function_call { $$=$1; }
 		/* | - func ( <relop_expr_list> ) */ 
-		| OP_NOT ID {process_id($2);} MK_LPAREN relop_expr_list MK_RPAREN
+		| OP_NOT ID MK_LPAREN relop_expr_list MK_RPAREN { $$ = check_func_call( $2, $4.param_count ); }
                 /* OP_MINUS condition added as C could have a condition like: "if(-read(i))".	*/	
-		| OP_MINUS ID {process_id($2);} MK_LPAREN relop_expr_list MK_RPAREN
-		| var_ref
+		| OP_MINUS ID MK_LPAREN relop_expr_list MK_RPAREN { $$ = check_func_call( $2, $4.param_count ); }
+		| var_ref { $$=$1; check_array_dimmension($1); }
 		/* | - var-reference */ 
-		| OP_NOT var_ref
+		| OP_NOT var_ref { $$=$2; check_array_dimmension($2); }
                 /* OP_MINUS condition added as C could have a condition like: "if(-a)".	*/	
-		| OP_MINUS var_ref
+		| OP_MINUS var_ref { $$=$2; check_array_dimmension($2); }
 		;
 
-var_ref		: ID {process_id($1);}
-		| var_ref dim
-		| var_ref struct_tail
+var_ref		: ID {process_id($1); $$=check_id_type($1); $$.param_count=0;}
+		| var_ref var_ref_dim { $$=$1; $$.param_count=$2; }
+		| var_ref struct_tail { $$=$1; $$.param_count=0; }
 		;
 
+var_ref_dim	: dim { $$=1; }
+		|	dim var_ref_dim { $$=$2+1; }
+		;
 
-dim		: MK_LB expr MK_RB
+dim		: MK_LB expr MK_RB { check_dim_type($2); }
 		;
 
 struct_tail	: MK_DOT ID 

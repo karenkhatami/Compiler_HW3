@@ -119,10 +119,24 @@ void cleanup_idlist ( id_list_t *head ) {
 }
 
 void add_var_list ( char *type, id_list_t *head, int nest_level ) {
-	add_var ( type, head->name, head->dim, nest_level );
+
+	char real_type[256];
+	strcpy ( real_type, type );
+	
+	//finding the real_type of the type (if exists)
+	type_t *temp = type_ll;
+	while ( temp!=NULL ) {
+		if ( strcmp(temp->name, type) == 0 ) {
+			strcpy ( real_type, temp->real_type );
+			break;
+		}
+		temp = temp->next;
+	}
+
+	add_var ( real_type, head->name, head->dim, nest_level );
 	while ( head->next != NULL ) {
 		head = head->next;
-		add_var ( type, head->name, head->dim, nest_level );
+		add_var ( real_type, head->name, head->dim, nest_level );
 	}
 	//cleanup_idlist ( head );
 }
@@ -306,12 +320,10 @@ func_t* find_func( char *name )
 func_t* find_last_func( )
 {
 	func_t *func_pointer = func_ll;
-	func_t *next_func_pointer = func_pointer->next;
-	while( next_func_pointer != NULL )
-	{
-		func_pointer = next_func_pointer;
-		next_func_pointer = func_pointer->next;
-	}
+
+	while( func_pointer->next != NULL )
+		func_pointer = func_pointer->next;
+
 	return func_pointer;
 }
 
