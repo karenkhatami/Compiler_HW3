@@ -12,7 +12,8 @@ type_t int_type;
 
 %}
 
-%union {char* str;
+%union {
+  char* str;
   int ival;
   double dval;
   id_list_t *ID_List;
@@ -60,6 +61,7 @@ type_t int_type;
 %start program
 
 %type <str> type
+%type <str> struct_tail
 %type <ID_List> init_id_list
 %type <ID_List> init_id
 %type <ID_List> id_list
@@ -301,7 +303,7 @@ factor		: MK_LPAREN relop_expr MK_RPAREN { $$ = $2; }
 
 var_ref		: ID {process_id($1); $$=check_id_type($1); $$.param_count=0;}
 		| var_ref var_ref_dim { $$=$1; $$.param_count=$2; }
-		| var_ref struct_tail { $$=$1; $$.param_count=0; }
+		| var_ref struct_tail { $$=$1; $$.param_count=0; struct_ref($1.name, $2); }
 		;
 
 var_ref_dim	: dim { $$=1; }
@@ -311,7 +313,7 @@ var_ref_dim	: dim { $$=1; }
 dim		: MK_LB expr MK_RB { check_dim_type($2); }
 		;
 
-struct_tail	: MK_DOT ID 
+struct_tail	: MK_DOT ID {$$=$2;}
 		;
 %%
 #include "lex.yy.c"
