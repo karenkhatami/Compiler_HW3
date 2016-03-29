@@ -22,8 +22,8 @@ void inc_nesting()
 
 void dec_nesting()
 {
-	//pop_vars( nesting );
-	//pop_types( nesting );
+	pop_vars( nesting );
+	pop_types( nesting );
 	nesting--;
 }
 
@@ -45,6 +45,18 @@ void dec_linenumber()
 int get_linenumber()
 {
 	return linenumber;
+}
+
+void newlines_in_comment( const char *text )
+{
+	int i;
+	for( i=0; i<strlen(text); i++ )
+	{
+		if( text[i] == '\n' )
+		{
+			inc_linenumber();
+		}
+	}
 }
 
 void print_current_line()

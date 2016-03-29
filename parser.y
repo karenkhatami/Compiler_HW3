@@ -10,11 +10,13 @@
 
 %}
 
-%union {char* str;
+%union {
+  char* str;
   int ival;
   double dval;
   id_list_t *ID_List;
   param_list_t *Param_List;
+  decl_list_t *Decl_List;
 }
 
 %token <str> ID
@@ -65,13 +67,17 @@
 %type <ival> dim_decl
 %type <ival> dim_fn
 %type <ival> dimfn1
+%type <str> tag
+%type <str> struct_type
+%type <str> struct_tail
+%type <str> var_ref
 
 %%
 
 /* ==== Grammar Section ==== */
 
 /* Productions */               /* Semantic actions */
-program		: { init_all(); } global_decl_list { print_vars(); print_types(); print_funcs();}
+program		: { init_all(); } global_decl_list { print_vars(); print_types(); print_funcs(); print_structs();}
 		;
 
 global_decl_list: global_decl_list global_decl
@@ -112,7 +118,7 @@ expr_null	:expr
 		|
 		;
 
-block           : decl_list stmt_list 
+block           : decl_list stmt_list
                 | stmt_list
                 | decl_list
                 | 
@@ -133,8 +139,8 @@ type_decl 	: TYPEDEF type id_list MK_SEMICOLON { type_def($2, $3, get_nesting())
 		;
 
 var_decl	: type init_id_list MK_SEMICOLON { add_var_list($1, $2, get_nesting()); }
-		| struct_type id_list MK_SEMICOLON
-		| ID id_list MK_SEMICOLON 
+		| struct_type id_list MK_SEMICOLON { add_var_list($1, $2, get_nesting()); }
+		| ID id_list MK_SEMICOLON { add_var_list($1, $2, get_nesting()); }
 		;
 
 /* Suppported types. */
@@ -144,16 +150,16 @@ type		: INT {$$=$1;}
         	|error{$$="error";}
 		;
 
-struct_type	: STRUCT tag
+struct_type	: STRUCT tag {$$=build_struct_type( $2 );}
 		;
 
 /* Struct variable body. */
-tag		: ID MK_LBRACE decl_list MK_RBRACE
-		| MK_LBRACE decl_list MK_RBRACE
-		| ID MK_LBRACE MK_RBRACE
-		| MK_LBRACE MK_RBRACE
-		| ID
-		;
+tag		: ID MK_LBRACE {inc_nesting();} decl_list MK_RBRACE {struct_decl( $1 ); dec_nesting(); $$=$1;}
+		| MK_LBRACE {inc_nesting();} decl_list MK_RBRACE {struct_decl( get_random_name() ); dec_nesting(); $$=get_random_name();}
+		| ID MK_LBRACE {inc_nesting();} MK_RBRACE {struct_decl( $1 ); dec_nesting(); $$=$1;}
+		| MK_LBRACE {inc_nesting();} MK_RBRACE {struct_decl( get_random_name() ); dec_nesting(); $$=get_random_name();}
+		| ID {$$=$1;}
+        ;
 
 
 id_list		: ID { $$=var_decl($1, 0); }
@@ -286,16 +292,16 @@ factor		: MK_LPAREN relop_expr MK_RPAREN
 		| OP_MINUS var_ref
 		;
 
-var_ref		: ID {process_id($1);}
-		| var_ref dim
-		| var_ref struct_tail
+var_ref		: ID {process_id($1); $$=$1;}
+		| var_ref dim {$$=$1;}
+		| var_ref struct_tail {struct_ref( $1, $2 );}
 		;
 
 
 dim		: MK_LB expr MK_RB
 		;
 
-struct_tail	: MK_DOT ID 
+struct_tail	: MK_DOT ID {$$=$2;}
 		;
 %%
 #include "lex.yy.c"

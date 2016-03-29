@@ -54,7 +54,7 @@ error    .
 %%
 
 {ws}            ;   /* do nothing with whitespace */
-{comment}	;
+{comment}	    { newlines_in_comment( yytext ); }
 {kwInt}         { yylval.str = strdup(yytext); return INT; }
 {kwFloat}       { yylval.str = strdup(yytext); return FLOAT; }
 {kwVoid}	{ yylval.str = strdup(yytext); return VOID; }

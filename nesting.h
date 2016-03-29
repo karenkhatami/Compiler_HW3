@@ -22,6 +22,8 @@ void dec_linenumber();
 
 int get_linenumber();
 
+void newlines_in_comment( const char *text );
+
 void print_current_line();
 
 void inc_errors();

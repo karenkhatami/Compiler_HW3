@@ -65,6 +65,8 @@ void cleanup_idlist ( id_list_t *head );
 
 var_t* find_var( char *name );
 
+decl_list_t *get_vars_nest( int nest_level );
+
 id_list_t *newIDnode(char* name, int dim);
 
 void init_types ();
@@ -76,6 +78,8 @@ void type_def ( char *type, id_list_t *head, int nest_level );
 void pop_types ( int nest_level );
 
 void init_all();
+
+char *get_real_type( char *type );
 
 void add_func ( char *type, char *name, param_list_t *params );
 
@@ -94,5 +98,19 @@ void add_struct ( char *name, decl_list_t *params );
 structs_t* find_struct( char *name );
 
 void print_structs();
+
+char *build_struct_type( char *name );
+
+char *get_random_name();
+
+decl_list_t *id_list_to_decl_list( char *type, id_list_t *id_list, int nest_level );
+
+void lappend_decl_list_to_var( decl_list_t *decl_list );
+
+decl_list_t *cat_decl_lists( decl_list_t *list1, decl_list_t *list2 );
+
+structs_t *find_struct( char *name );
+
+decl_list_t *find_struct_member( structs_t *var_struct, char *name );
 
 #endif //symbol_tables.h_

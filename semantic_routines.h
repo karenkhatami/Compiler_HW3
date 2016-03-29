@@ -22,6 +22,8 @@ void func_decl ( char *type, char *name, param_list_t *params );
 
 param_list_t *struct_param_decl (char* type, char* name, int dim, int nest_level);
 
-void struct_decl ( char *name, param_list_t *params );
+void struct_decl ( char *name );
+
+void struct_ref ( char *struct_var_name, char *member_name );
 
 #endif //semantic_routines.h_

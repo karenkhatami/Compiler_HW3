@@ -11,6 +11,8 @@ type_t *type_ll=NULL;
 var_t *var_ll=NULL;
 func_t *func_ll=NULL;
 structs_t *structs_ll=NULL;
+char struct_type[256];
+char random_name[256];
 
 //======================================================
 //------------------   FUNC DEFS    --------------------
@@ -144,6 +146,42 @@ var_t* find_var( char *name )
 	return var_result;
 }
 
+decl_list_t *get_vars_nest( int nest_level )
+{
+	decl_list_t *return_list=NULL;
+	decl_list_t *pointer_decl_list=NULL;
+	decl_list_t *new_list_node=NULL;
+	var_t *pointer_var=var_ll;
+
+	while( pointer_var!=NULL )
+	{
+		if( pointer_var->nest_level==nest_level )
+		{
+			new_list_node = (decl_list_t *)malloc(sizeof(decl_list_t));
+			strcpy(new_list_node->var.name, pointer_var->name);
+			strcpy(new_list_node->var.type, pointer_var->type);
+			new_list_node->var.dim = pointer_var->dim;
+			new_list_node->var.nest_level = pointer_var->nest_level;
+			new_list_node->next = NULL;
+			if( return_list==NULL )
+			{
+				return_list = new_list_node;
+			}
+			if( pointer_decl_list == NULL )
+			{
+				pointer_decl_list = new_list_node;
+			}
+			else
+			{
+				pointer_decl_list->next = new_list_node;
+				pointer_decl_list = pointer_decl_list->next;
+			}
+		}
+		pointer_var = pointer_var->next;
+	}
+	return return_list;
+}
+
 id_list_t *newIDnode(char* name, int dim){
 
 	id_list_t *temp = (id_list_t*) malloc ( sizeof(id_list_t) );
@@ -241,6 +279,22 @@ void pop_types ( int nest_level )
 			type_pointer = type_pointer->next;
 		}
 	}
+}
+
+char *get_real_type( char *type )
+{
+	char *real_type=NULL;
+	type_t *type_pointer=type_ll;
+	while( type_pointer!=NULL )
+	{
+		if( strcmp( type_pointer->name, type )==0 )
+		{
+			real_type = type_pointer->real_type;
+			break;
+		}
+		type_pointer = type_pointer->next;
+	}
+	return real_type;
 }
 
 void init_all(){
@@ -398,6 +452,7 @@ structs_t* find_struct( char *name )
 {
 	structs_t *structs_pointer = structs_ll;
 	structs_t *structs_result = NULL;
+
 	while( structs_pointer != NULL )
 	{
 		if( strcmp( structs_pointer->name, name ) == 0 )
@@ -418,7 +473,7 @@ void print_structs() {
 	
 	//writing all the functions
 	while ( structs_pointer != NULL ) {
-		printf ( "FUNC: ID=%s\n", structs_pointer->name );
+		printf ( "STRUCT: ID=%s\n", structs_pointer->name );
 		member_pointer = structs_pointer->members;
 		while( member_pointer != NULL )
 		{
@@ -427,5 +482,114 @@ void print_structs() {
 		}
 		structs_pointer = structs_pointer->next;
 	}
+}
 
+/* Following function takes the struct name and returns a string 'struct name' which will be a new type */
+char *build_struct_type( char *name )
+{
+	int i;
+	if( name==NULL )
+	{
+		return NULL;
+	}
+	// init array
+	for( i=0; i<256; i++ )
+	{
+		struct_type[i] = 0;
+	}
+	strcat( struct_type, "struct ");
+	strcat( struct_type, name);
+	return struct_type;
+}
+
+char *get_random_name( )
+{
+	int i;
+	for( i=0; i<256; i++ )
+	{
+		random_name[i] = 0;
+	}
+	sprintf(random_name, "%d", get_linenumber() );
+	return random_name;
+}
+
+decl_list_t *id_list_to_decl_list( char *type, id_list_t *id_list, int nest_level )
+{
+	decl_list_t *head_decl_list=NULL;
+	decl_list_t *tail_decl_list=NULL;
+	decl_list_t *new_decl_list_node=NULL;
+
+	while( id_list != NULL )
+	{
+		// populate new node
+		new_decl_list_node = (decl_list_t *)malloc(sizeof(decl_list_t));
+		strcpy(new_decl_list_node->var.name, id_list->name);
+		strcpy(new_decl_list_node->var.type, type);
+		new_decl_list_node->var.dim = id_list->dim;
+		new_decl_list_node->var.nest_level = nest_level;
+		new_decl_list_node->next = NULL;
+		
+		// add node to list
+		if( head_decl_list==NULL )
+		{
+			// first node
+			head_decl_list = new_decl_list_node;
+			tail_decl_list = new_decl_list_node;
+		}
+		else
+		{
+			tail_decl_list->next = new_decl_list_node;
+			tail_decl_list = tail_decl_list->next;
+		}
+
+		id_list = id_list->next;
+	}
+	return head_decl_list;
+}
+
+void append_decl_list_to_var( decl_list_t *decl_list )
+{
+	while( decl_list!=NULL )
+	{
+		add_var( decl_list->var.type, decl_list->var.name, decl_list->var.dim, decl_list->var.nest_level );
+		decl_list = decl_list->next;
+	}
+}
+
+decl_list_t *cat_decl_lists( decl_list_t *list1, decl_list_t *list2 )
+{
+	decl_list_t *cur_node=list1;
+	decl_list_t *next_node;
+	if( cur_node!=NULL )
+	{
+		while( cur_node->next!=NULL )
+		{
+			//cur_node = next_node;
+			cur_node = cur_node->next;
+		}
+		cur_node->next = list2;
+	}
+	else
+	{
+		list1 = list2;
+	}
+	return list1;
+}
+
+decl_list_t *find_struct_member( structs_t *var_struct, char *name )
+{
+	decl_list_t *member_pointer=var_struct->members;
+	decl_list_t *return_member=NULL;
+
+	while( member_pointer!=NULL )
+	{
+		if( strcmp( member_pointer->var.name, name ) == 0 )
+		{
+			return_member = member_pointer;
+			break;
+		}
+		member_pointer = member_pointer->next;
+	}
+
+	return return_member;
 }
