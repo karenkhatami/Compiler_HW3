@@ -1,16 +1,19 @@
-/* Test1 */
-/* Can you handle WHILE and IF statements ? */
+/* Test Cases*/
 
 int MatrixMultiplication(int V1[][10], int V2[][10])
 {
- int result[10][10];          /*multi-dimensional array declaration */
- /*float result;*/
+ int result[10][10];          
 
-/* for is used like this */
-   for (i1 = 0; i2 < 10; i3 = i4 + 1) 
+/* 1.a:   i is not defined --> ID (i) undeclared. */
+   for (i = 0; i < 10; i = i + 1) 
    {
       for(j = 0; j < 10; j = j + 1) 
       {
+
+/* 1.b:   j is redclared --> ID (j) redeclared. */
+			int j;
+			float j;
+
             result[i] = 0;
             for (k = 0; k < 10; k = k + 1) 
             {
@@ -18,42 +21,46 @@ int MatrixMultiplication(int V1[][10], int V2[][10])
             }
       }
    }
-
+/* 2.b:   should return int  -->  Incompatible return type. */
   return ;
 }
 
 int main()
 {
-	/* typedef construct used here */
+
 	typedef int COUNTERS;
 	COUNTERS i;
 
-	/* float used here, also the variable name is mixed with digits and 
-	underscore*/
 	float someReal12345;
 
-	/* int declared here */
 	int a,b,n;
 
-	int karen[3][4][5];
-	karen[3][i] = 2 + karen;
+	int Array3D[3][4][5];
+	
+/* 2.a:   too many arguments to function */
+	MatrixMultiplication ( a, b,c);
+/* 2.a:   too few arguments to function */
+	MatrixMultiplication ( a);
 
-	/* Read, Fread, and Write are library functions*/
+/* 3.a:   Incompatible array dimensions */	
+	a = 2 + Array3D[1];
+/* 3.b:   Array subscript is not an integer */	
+	a = 2 + Array3D[someReal12345];
+/* 3.c:   Array (Array3D) passed to scalar parameter */	
+	a = 2 + Array3D;
+/* 3.c:   Scalar (a) passed to array parameter */	
+	a[2] = 2 + Array3D[1][1][1];
+
 	write("Input some real number:");
 	n = read();
 	someReal12345 = fread();
 
-	/* While is used like this */
 	a = 200000;
 	while( n != 0) 
 	{
 		a = a/n;
 		n = n - 1;
 	}
-
-	MatrixMultiplication ( a, b,c);
-
-	/* Using all the logical and arithmatic operator */
 
 	if ( someReal12345 <= 120.05) 
 	{
@@ -69,6 +76,13 @@ int main()
 			int a1;
 			struct x Z;
 		} y1, y2[10];
+/* 4.b:  At the end of struct, we realize if there is any duplicate member.
+In struct 'x' line 78:
+	Duplicate member (a1).*/
+/* 4.d:  At the end of struct, we realize if there is incomplete type.
+In struct 'x' line 78:
+	field (Z) has incomplete type.*/
+		
 		if (a == 1) 
 		{
 		write("A is 1");
@@ -79,7 +93,11 @@ int main()
 			{
 				a3[1][2]=2;
 				write("A greater than zero");
+/* 4.a:   Structure has no member named (a4) */	
 				y1.a4[1][3] = 0;
+/* 4.c:   Invalid operands */	
+				y1 = y1 + y1;
+/* 4.c:   Incompatible type */	
 				y2[3].a3[1][2] = 1;
 				a = y2[1];
 			} 

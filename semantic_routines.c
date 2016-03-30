@@ -132,25 +132,28 @@ type_t struct_ref ( char *struct_var_name, char *member_name )
 		printf( "\tID (%s) redeclared.\n", struct_var_name );
 		inc_errors();
 	}
-
 	// get the struct name (it's the real type in type definitions)
-	var_type = get_real_type( existing_var->type );
+	else
+		var_type = get_real_type( existing_var->type );
+
 	if( var_type==NULL )
 	{
 		print_current_line();
 		printf( "\tID (%s) type undefined.\n", struct_var_name );
 		inc_errors();
 	}
-
-	var_struct = find_struct( &var_type[7] );
+	else
+		var_struct = find_struct( &var_type[7] );
+		
 	if( var_struct==NULL )
 	{
 		print_current_line();
 		printf( "\tID (%s) struct undefined.\n", struct_var_name );
 		inc_errors();
 	}
-
-	struct_member = find_struct_member( var_struct, member_name );
+	else
+		struct_member = find_struct_member( var_struct, member_name );
+		
 	if( struct_member==NULL )
 	{
 		print_current_line();
