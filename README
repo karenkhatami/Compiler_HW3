@@ -12,5 +12,7 @@ the nesting level decreases, it removes all the variables from the symbol
 table. This way, we make sure at each line, we are looking at the most
 nested available instance of a variable.
 
-Limits: Our parser successfully finds all the errors in the Tests and our file.
-The only case that it cannot handle is nested structure.
+Our parser successfully finds all the errors in the Tests and our file.
+
+Limits: 
+The only case that it cannot handle is nested structure in Test2.
