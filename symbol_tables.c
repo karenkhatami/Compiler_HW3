@@ -311,9 +311,31 @@ char *get_real_type( char *type )
 	return real_type;
 }
 
+void init_funcs () {
+
+	func_ll = (func_t *) malloc ( sizeof (func_t) );
+	strcpy(func_ll->name, "write");
+	strcpy(func_ll->type, "void");
+	func_ll->params = (param_list_t *) malloc ( sizeof(param_list_t) );
+	func_ll->params->next=NULL;
+	strcpy(func_ll->params->param.name, "arg1");
+	strcpy(func_ll->params->param.type, "int");
+	func_ll->next = (func_t *) malloc ( sizeof(func_t) );
+	strcpy(func_ll->next->name, "read");
+	strcpy(func_ll->next->type, "int");
+	func_ll->next->params=NULL;
+	func_ll->next->next = (func_t *) malloc ( sizeof(func_t) );
+	strcpy(func_ll->next->next->name, "fread");
+	strcpy(func_ll->next->next->type, "int");
+	func_ll->next->next->params=NULL;
+	func_ll->next->next->next=NULL;
+
+}
+
 void init_all(){
 
 	init_types();
+	init_funcs();
 
 }
 

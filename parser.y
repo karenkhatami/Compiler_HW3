@@ -90,7 +90,7 @@ type_t int_type;
 /* ==== Grammar Section ==== */
 
 /* Productions */               /* Semantic actions */
-program		: { init_all(); strcpy(int_type.real_type, "int"); } global_decl_list { print_vars(); print_types(); print_funcs(); print_structs();}
+program		: { init_all(); strcpy(int_type.real_type, "int"); } global_decl_list /*{ print_vars(); print_types(); print_funcs(); print_structs();}*/
 		;
 
 global_decl_list: global_decl_list global_decl

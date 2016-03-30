@@ -191,7 +191,9 @@ type_t check_func_call ( char *name, int param_count ) {
 	
 		param_list_t *temp_param_pointer = func_pointer->params;
 		int count = 1;
-		while ( temp_param_pointer->next != NULL ) {
+		if ( temp_param_pointer == NULL )
+			count = 0;
+		else while ( temp_param_pointer->next != NULL ) {
 			count++;
 			temp_param_pointer = temp_param_pointer->next;
 		}
